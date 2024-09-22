@@ -157,7 +157,8 @@ def list_printers():
 
     try:
         # List all printers with verbose information retrieval
-        printers = win32print.EnumPrinters(win32print.PRINTER_ENUM_CONNECTIONS | win32print.PRINTER_ENUM_LOCAL, None, 1)  # 2 for PRINTER_ENUM_FULL
+        printers = win32print.EnumPrinters(win32print.PRINTER_ENUM_CONNECTIONS, None, 1)  # 2 for PRINTER_ENUM_FULL
+        #  | win32print.PRINTER_ENUM_LOCAL
         if debug:
             print(f"\n\n Printers Found: {printers} \n\n")
         for index, printer in enumerate(printers):
@@ -170,8 +171,8 @@ def list_printers():
             return printer_name
         else:
             return None
-    except win32print.WinError as e:
-        print(f"Error listing printers: {e}")
+    except:
+        print(f"Error listing printers")
         return None
 
 class XFORM(Structure):
