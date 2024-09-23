@@ -165,7 +165,7 @@ def list_printers():
             printer_name = printer[2]  # Printer name is at index 2
             if debug:
                 print(f"Printer #{index+1}: {printer_name}")
-            if printer_name == "EPSON L3250 Series":
+            if printer_name == "HP Ink Tank 310 series":
                 break
         if printer_name is not None and printer_name:
             return printer_name
