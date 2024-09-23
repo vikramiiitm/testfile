@@ -11,6 +11,11 @@ from win32con import DM_ORIENTATION, DMORIENT_LANDSCAPE, SRCCOPY, BLACK_PEN, TRA
 from ctypes import windll, Structure, c_float, byref
 from ctypes.wintypes import LONG
 
+import pytesseract
+from PIL import Image
+pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+
+
 ''' Pro
 1. Get IP of connected phone
 2. Check Available Printer
@@ -98,6 +103,42 @@ def capture_photo(ip=None):
 
     return img
 
+import pytesseract
+from PIL import Image
+pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+
+def ocr_image(image_path):
+    """Performs OCR on the specified image and returns the recognized text.
+
+    Args:
+        image_path (str): The path to the image file.
+
+    Returns:
+        str: The recognized text from the image.
+    """
+
+    try:
+        image = Image.open(image_path)
+        text = pytesseract.image_to_string(image)
+        return text
+
+    except Exception as e:
+        print(f"Error performing OCR: {e}")
+        return None
+
+import re
+
+def extract_e_stamp_value(text):
+
+  pattern = r"e-Stamp\s+(\S+)"  # Regular expression pattern
+  match = re.search(pattern, text)
+
+  if match:
+    return match.group(1)
+  else:
+    print("Unable to find the value after 'e-Stamp'.")
+    return None
+
 def scan_barcode(filename):
     data = {}
     BarcodeReader.init_license(
@@ -158,21 +199,20 @@ def list_printers():
     try:
         # List all printers with verbose information retrieval
         printers = win32print.EnumPrinters(win32print.PRINTER_ENUM_CONNECTIONS | win32print.PRINTER_ENUM_LOCAL, None, 1)  # 2 for PRINTER_ENUM_FULL
-        #  | win32print.PRINTER_ENUM_LOCAL
         if debug:
             print(f"\n\n Printers Found: {printers} \n\n")
         for index, printer in enumerate(printers):
             printer_name = printer[2]  # Printer name is at index 2
             if debug:
                 print(f"Printer #{index+1}: {printer_name}")
-            if printer_name == "HP Ink Tank 310 series":
+            if printer_name == "EPSON L3250 Series":
                 break
         if printer_name is not None and printer_name:
             return printer_name
         else:
             return None
-    except:
-        print(f"Error listing printers")
+    except win32print.WinError as e:
+        print(f"Error listing printers: {e}")
         return None
 
 class XFORM(Structure):
@@ -278,21 +318,29 @@ if __name__ == "__main__":
     
     # 3 Capture photo and get the captured image
     captured_image = capture_photo(ip_address)
-    scan_barcode("captured_photo.jpg")
+    # scan_barcode("captured_photo.jpg")
 
     #  4. Scan barcode get resul
-    scan_result_string = scan_barcode("captured_photo")
-    scan_result_dict = parse_text_to_dict(scan_result_string)
-    stamp_code = scan_result_dict['E-Stamp Code']
-    print(f"stamp Code: {stamp_code}")
+    # scan_result_string = scan_barcode("captured_photo")
+    # scan_result_dict = parse_text_to_dict(scan_result_string)
+    # stamp_code = scan_result_dict['E-Stamp Code']
+    # print(f"stamp Code: {stamp_code}")
 
+    recognized_text = ocr_image("estamp.png")
+    print(recognized_text)
+
+    if recognized_text:
+        output = extract_e_stamp_value(recognized_text)
+        print(output.replace('.', ''))
+    else:
+        print("OCR failed.")
 
     stamp_df = load_stamp_data('data.csv')
-    value = get_stamp_value(stamp_code, stamp_df)
+    value = get_stamp_value(output.replace('.',''), stamp_df)
     print(f"Value: {value}")
 
     # Do something with the captured image
-    print_stamp(printer_name, stamp_code, 1500, 200)
+    print_stamp(printer_name, value, 1500, 200)
 
 
 
