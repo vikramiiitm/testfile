@@ -157,7 +157,7 @@ def list_printers():
 
     try:
         # List all printers with verbose information retrieval
-        printers = win32print.EnumPrinters(win32print.PRINTER_ENUM_CONNECTIONS, None, 1)  # 2 for PRINTER_ENUM_FULL
+        printers = win32print.EnumPrinters(win32print.PRINTER_ENUM_CONNECTIONS | win32print.PRINTER_ENUM_LOCAL, None, 1)  # 2 for PRINTER_ENUM_FULL
         #  | win32print.PRINTER_ENUM_LOCAL
         if debug:
             print(f"\n\n Printers Found: {printers} \n\n")
